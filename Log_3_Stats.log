@@ -1,0 +1,47 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /bplimext/projects/p068_SilvaSantosGouveia/work_area/Log_3_Stats.log
+  log type:  text
+ opened on:  21 Dec 2020, 18:20:49
+r; t=0.00 18:20:49
+
+. 
+. /////////////////// DESCRIPTIVE STATISTICS //////////////////
+> 
+. 
+. use "/bplimext/projects/p068_SilvaSantosGouveia/work_area/finaldb.dta", clear
+(CB Panel 2006-2018 - Ref. 2020_06 - YFRM/Rosto (V01) - Anonymized - PE068)
+r; t=0.40 18:20:50
+
+. 
+. label variable ln_turnover "ln Turnover"
+r; t=0.00 18:20:50
+
+. 
+. 
+. eststo treat0_desc: quietly estpost summarize ln_finance ln_total_assets ln_fixed_assets ln_laborprod ln_levpetTFP ln_wages ln_ebitda investment ln_turnover age hascr
+> edit longcreditpc eftw collateral debtassetr if ano == 2007 & treat14to17 == 0, detail
+r; t=9.38 18:20:59
+
+. 
+. eststo treat1_desc: quietly estpost summarize ln_finance ln_total_assets ln_fixed_assets ln_laborprod ln_levpetTFP ln_wages ln_ebitda investment ln_turnover age hascr
+> edit longcreditpc eftw collateral debtassetr if ano == 2007 & treat14to17 == 1, detail
+r; t=7.55 18:21:07
+
+. 
+. 
+. esttab treat0_desc treat1_desc using sumstats.tex, replace cells("count(fmt(0)) mean(fmt(1)) sd(fmt(1)) p25(fmt(1)) p50(fmt(1)) p75(fmt(1)) p95(fmt(1))") title("Descr
+> iptive Statistics - 2007") label lines gaps noobs tex nonumbers mtitles("Untreated" "Treated")
+(output written to sumstats.tex)
+r; t=0.07 18:21:07
+
+. 
+. 
+. 
+. 
+. log close
+      name:  <unnamed>
+       log:  /bplimext/projects/p068_SilvaSantosGouveia/work_area/Log_3_Stats.log
+  log type:  text
+ closed on:  21 Dec 2020, 18:21:07
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------

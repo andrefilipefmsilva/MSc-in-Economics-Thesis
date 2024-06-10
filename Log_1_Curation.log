@@ -1,0 +1,1302 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /bplimext/projects/p068_SilvaSantosGouveia/work_area/Log_1_Curation.log
+  log type:  text
+ opened on:  22 Dec 2020, 19:46:35
+r; t=0.00 19:46:35
+
+. 
+. 
+. 
+. 
+. set more off
+r; t=0.00 19:46:35
+
+. 
+. 
+. *****************MERGING TABLES*****************************
+. *****************MERGING TABLES*****************************
+. *****************MERGING TABLES*****************************
+. 
+. use "/bplimext/projects/p068_SilvaSantosGouveia/work_area/ROSTO_2006-2018.dta", clear
+(CB Panel 2006-2018 - Ref. 2020_06 - YFRM/Rosto (V01) - Anonymized - PE068)
+r; t=0.33 19:46:36
+
+. 
+. merge 1:1 tina ano using DR_2006-2018, generate(dr)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                         5,028,327  (dr==3)
+    -----------------------------------------
+r; t=13.22 19:46:49
+
+. 
+. merge 1:1 tina ano using PESSOAL_2006-2018, generate(_pessoal)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                         5,028,327  (_pessoal==3)
+    -----------------------------------------
+r; t=7.85 19:46:57
+
+. 
+. merge 1:1 tina ano using EXPORT_2006-2018, generate (_export)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                         5,028,327  (_export==3)
+    -----------------------------------------
+r; t=7.20 19:47:04
+
+. 
+. merge 1:m tina ano using "AMARC_edit", keep(master match) keepusing(tipoacont) generate (_amarc)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                     5,023,623
+        from master                 5,023,623  (_amarc==1)
+        from using                          0  (_amarc==2)
+
+    matched                             9,359  (_amarc==3)
+    -----------------------------------------
+r; t=14.18 19:47:18
+
+. 
+. 
+. * Delete duplicate observations arising from merge with AMARC_edit
+. //duplicates report tina ano
+. duplicates drop tina ano, force
+
+Duplicates in terms of tina ano
+
+(4,655 observations deleted)
+r; t=26.76 19:47:45
+
+. 
+. joinby tina ano using "CRC_2014_edit", update unmatched(master) _merge(garant2014)
+r; t=25.04 19:48:10
+
+. joinby tina ano using "CRC_2015_edit", update unmatched(master) _merge(garant2015)
+r; t=22.27 19:48:32
+
+. joinby tina ano using "CRC_2016_edit", update unmatched(master) _merge(garant2016)
+r; t=21.96 19:48:54
+
+. joinby tina ano using "CRC_2017_edit", update unmatched(master) _merge(garant2017)
+r; t=22.54 19:49:17
+
+. 
+. sort tina ano
+r; t=0.56 19:49:17
+
+. 
+. drop _export _pessoal dr tipogarantia
+r; t=0.46 19:49:18
+
+. 
+. save "/bplimext/projects/p068_SilvaSantosGouveia/work_area/merged.dta", replace
+file /bplimext/projects/p068_SilvaSantosGouveia/work_area/merged.dta saved
+r; t=3.77 19:49:21
+
+. 
+. **********************CURATION FOR POLICY ELIGIBILITY*****************
+. **********************CURATION FOR POLICY ELIGIBILITY*****************
+. **********************CURATION FOR POLICY ELIGIBILITY*****************
+. 
+. use "/bplimext/projects/p068_SilvaSantosGouveia/work_area/merged.dta", clear
+(CB Panel 2006-2018 - Ref. 2020_06 - YFRM/Rosto (V01) - Anonymized - PE068)
+r; t=1.50 19:49:23
+
+. 
+. 
+. ***** INTEGRITY CHECK *****
+. 
+. bysort tina (ano): egen counter_beforedrop = count(tina)
+r; t=2.46 19:49:25
+
+. 
+. ***** INTEGRITY CHECK *****
+. 
+. 
+. 
+. * Dummies for firms if treated and treatment year
+. bysort tina (ano): egen byte treated14 = max(garant2014)
+r; t=2.88 19:49:28
+
+. replace treated14 = 0 if treated14 == 1
+(5,022,328 real changes made)
+r; t=0.85 19:49:29
+
+. replace treated14 = 1 if treated14 == 3
+(5,999 real changes made)
+r; t=0.62 19:49:30
+
+. 
+. bysort tina (ano): egen byte treated15 = max(garant2015)
+r; t=2.74 19:49:32
+
+. replace treated15 = 0 if treated15 == 1
+(5,021,518 real changes made)
+r; t=0.82 19:49:33
+
+. replace treated15 = 1 if treated15 == 3
+(6,809 real changes made)
+r; t=0.60 19:49:34
+
+. 
+. bysort tina (ano): egen byte treated16 = max(garant2016)
+r; t=3.23 19:49:37
+
+. replace treated16 = 0 if treated16 == 1
+(5,024,516 real changes made)
+r; t=1.08 19:49:38
+
+. replace treated16 = 1 if treated16 == 3
+(3,811 real changes made)
+r; t=0.74 19:49:39
+
+. 
+. bysort tina (ano): egen byte treated17 = max(garant2017)
+r; t=2.66 19:49:42
+
+. replace treated17 = 0 if treated17 == 1
+(5,025,193 real changes made)
+r; t=0.82 19:49:42
+
+. replace treated17 = 1 if treated17 == 3
+(3,134 real changes made)
+r; t=0.65 19:49:43
+
+. 
+. ** Finding nr of firms treated in each year
+. *2014
+. egen counter14 = group(tina) if treated14==1
+(5,022,328 missing values generated)
+r; t=20.38 19:50:03
+
+. sum counter14
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+   counter14 |      5,999    243.3554    140.6412          1        485
+r; t=0.21 19:50:04
+
+. drop counter14
+r; t=0.00 19:50:04
+
+. //485 firms observed
+. 
+. *2015
+. egen counter15 = group(tina) if treated15==1
+(5,021,518 missing values generated)
+r; t=13.65 19:50:17
+
+. sum counter15
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+   counter15 |      6,809    283.3896    163.2683          1        564
+r; t=0.17 19:50:17
+
+. drop counter15
+r; t=0.00 19:50:17
+
+. //564 firms observed
+. 
+. *2016
+. egen counter16 = group(tina) if treated16==1
+(5,024,516 missing values generated)
+r; t=13.36 19:50:31
+
+. sum counter16
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+   counter16 |      3,811    165.3372    95.65277          1        332
+r; t=0.19 19:50:31
+
+. drop counter16
+r; t=0.00 19:50:31
+
+. // 332 firms observed
+. 
+. *2017
+. egen counter17 = group(tina) if treated17==1
+(5,025,193 missing values generated)
+r; t=16.12 19:50:47
+
+. sum counter17
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+   counter17 |      3,134    136.7776    80.05994          1        276
+r; t=0.20 19:50:47
+
+. drop counter17
+r; t=0.00 19:50:47
+
+. // 276 firms observed
+. 
+. 
+. ** Tagging firms for treatment in 2014 or 2015 or 2016 or 2017
+. 
+. bysort tina: egen byte treat14to17 = max(treated14 | treated15 | treated16 | treated17)
+r; t=3.14 19:50:50
+
+. 
+. 
+. ** Finding nr of firms treated  14 to 17
+. egen counter14to17 = group(tina) if treat14to17==1
+(5,019,748 missing values generated)
+r; t=14.28 19:51:05
+
+. sum counter14to17
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+counter14~17 |      8,579    362.7524    209.5365          1        725
+r; t=0.32 19:51:05
+
+. drop counter14to17
+r; t=0.00 19:51:05
+
+. // 725 firms (because some firms are treated in more than one year)
+. 
+. 
+. 
+. ********Policy eligibility *********
+. ********Policy eligibility *********
+. ********Policy eligibility *********
+. 
+. 
+. * Dropping if firms always large
+. bysort tina: egen avg_size = mean(dimcomissao)
+r; t=2.71 19:51:08
+
+. drop if avg_size == 4
+(7,158 observations deleted)
+r; t=2.08 19:51:10
+
+. 
+. drop avg_size
+r; t=0.00 19:51:10
+
+. 
+. 
+. * Dropping if untreated firms with negative liquid result in 2013 or 2014 or 2015 or 2016 [years prior to policy attribution]
+. bysort tina (ano): gen float result_liq = D087 if (ano == 2013 | ano == 2014 | ano == 2015 | ano == 2016)
+(3,430,956 missing values generated)
+r; t=0.31 19:51:10
+
+. 
+. bysort tina (ano): drop if result_liq < 0
+(652,549 observations deleted)
+r; t=2.98 19:51:13
+
+. 
+. drop result_liq
+r; t=0.00 19:51:13
+
+. 
+. 
+. * Deleting firms from Açores or Madeira since rules are different
+. //tab distrito
+. bysort tina (ano): drop if distrito == 19 | distrito == 20 | distrito == 21 | distrito == 22
+(163,110 observations deleted)
+r; t=3.56 19:51:17
+
+. 
+. 
+. * Deleting firms with no information available at all
+. bysort tina (ano): drop if sitempresa ==.
+(132 observations deleted)
+r; t=2.94 19:51:20
+
+. 
+. 
+. * Correcting missing values in database
+. * the following set of rules must be run in this exact order
+. replace E005 = 0 if E001==.
+(56,898 real changes made)
+r; t=0.50 19:51:20
+
+. replace E007 = 0 if E001==.
+(56,788 real changes made)
+r; t=0.46 19:51:21
+
+. replace E007 = 0 if (E006 == 0 & E007==.)
+(502,370 real changes made)
+r; t=0.76 19:51:21
+
+. replace E007 = 0 if (E004 == E002 & E007==.)
+(848,947 real changes made)
+r; t=0.75 19:51:22
+
+. replace E005 = 0 if (E002 == E006 & E005==.)
+(119,188 real changes made)
+r; t=0.74 19:51:23
+
+. replace E007 = 0 if (E002+E003 == E001 & E007 ==.)
+(291,906 real changes made)
+r; t=0.75 19:51:24
+
+. replace E005 = 0 if E001 == 0
+(275,271 real changes made)
+r; t=0.53 19:51:24
+
+. replace E007 = 0 if (E004 == E001 & E007==.)
+(1,333 real changes made)
+r; t=0.69 19:51:25
+
+. replace E005 = 0 if (E006 == E001 & E005==.)
+(42,469 real changes made)
+r; t=0.74 19:51:26
+
+. //had to make a call here based on the lack of data
+. replace E007 = 0 if (E005 == E001 & E007==.)
+(7,632 real changes made)
+r; t=0.66 19:51:26
+
+. replace E005 = 0 if (E004 == 0 & E005==.)
+(27 real changes made)
+r; t=0.67 19:51:27
+
+. replace E007 = 0 if (E006 == E003 & E007==.)
+(36 real changes made)
+r; t=0.73 19:51:28
+
+. replace E005 = 0 if (E001 == E003 & E005 ==.)
+(15,301 real changes made)
+r; t=0.65 19:51:28
+
+. replace E005 = 0 if (E003 + E007 == E001 & E005 ==.)
+(8 real changes made)
+r; t=0.70 19:51:29
+
+. replace E005 = 0 if (E002 == E007)
+(15 real changes made)
+r; t=0.67 19:51:30
+
+. replace E007 = 0 if E007 ==.
+(5 real changes made)
+r; t=0.44 19:51:30
+
+. 
+. ** Dropping firms always with under 3 employees
+. by tina, sort : egen float max_employees = max(E005 + E007)
+r; t=2.81 19:51:33
+
+. bysort tina: drop if max_employees < 3
+(1,848,134 observations deleted)
+r; t=2.86 19:51:36
+
+. 
+. drop max_employees
+r; t=0.00 19:51:36
+
+. 
+. 
+. * Delete awkward firms that only show up one time and "dead"
+. bysort tina: egen counter_tina = count(tina)
+r; t=1.34 19:51:37
+
+. drop if motivodec == 2 & counter_tina ==1
+(429 observations deleted)
+r; t=0.81 19:51:38
+
+. 
+. drop counter_tina
+r; t=0.00 19:51:38
+
+. 
+. 
+. * Deleting firms with CAEs attributted to financial institutions or public administration
+. //tab cae3
+. bysort tina (ano): drop if cae3 == 64190 | cae3 == 64201 | cae3 == 64202 |cae3 == 64300 | cae3 == 64910 | cae3 == 64921 | cae3 == 64922 | cae3 == 64
+> 923 | cae3 == 64991 | cae3 == 64992 
+(4,496 observations deleted)
+r; t=1.67 19:51:40
+
+. bysort tina (ano): drop if cae3 == 66110 | cae3 == 66120 | cae3 == 66190 | cae3 == 66210 | cae3 == 66220 | cae3 == 66290 | cae3 == 66300 
+(214 observations deleted)
+r; t=1.57 19:51:41
+
+. bysort tina (ano): drop if cae3 ==  84113  | cae3 ==  84114 | cae3 == 84123 | cae3 == 84130 | cae3 == 84230 | cae3 == 84240 | cae3 == 84250 
+(32 observations deleted)
+r; t=1.42 19:51:43
+
+. bysort tina (ano): drop if caekotu ==1
+(6 observations deleted)
+r; t=1.45 19:51:44
+
+. 
+. 
+. * Private non-financial Holdings
+. bysort tina (ano): drop if sectorinstfinal == 348500308 
+(258 observations deleted)
+r; t=1.28 19:51:45
+
+. 
+. * Private non-financial Holdings under foregin control
+. bysort tina (ano): drop if sectorinstfinal == 348500314
+(9 observations deleted)
+r; t=1.11 19:51:46
+
+. 
+. * Public non-financial Holdings
+. bysort tina (ano): drop if sectorinstfinal == 348500302
+(0 observations deleted)
+r; t=0.90 19:51:47
+
+. 
+. 
+. 
+. ******** Database checks *******
+. ******** Database checks *******
+. ******** Database checks *******
+. 
+. 
+. 
+. * Dropping companies tagged with relevant events in AMARC_edit but irrelevant for the analysis
+. bysort tina (ano): drop if (tipoacont == 67 | tipoacont == 70 | tipoacont == 71 | tipoacont == 72 | tipoacont == 78 | tipoacont == 79)
+(492 observations deleted)
+r; t=1.49 19:51:49
+
+. 
+. drop tipoacont
+r; t=0.10 19:51:49
+
+. 
+. * Dropping firms with no assets or no liabilities
+. by tina: egen media_ativo = mean(B001)
+r; t=1.25 19:51:50
+
+. by tina: egen media_passivo = mean(B080)
+r; t=1.18 19:51:51
+
+. bysort tina: drop if media_ativo == 0
+(72 observations deleted)
+r; t=1.20 19:51:53
+
+. bysort tina: drop if media_passivo == 0
+(361 observations deleted)
+r; t=1.26 19:51:54
+
+. 
+. drop media_ativo
+r; t=0.12 19:51:54
+
+. drop media_passivo
+r; t=0.00 19:51:54
+
+. 
+. 
+. 
+. ***** INTEGRITY CHECK *****
+. 
+. bysort tina (ano): egen counter_afterdrop = count(tina)
+r; t=1.46 19:51:55
+
+. 
+. bysort tina (ano): drop if counter_beforedrop != counter_afterdrop
+(1,149,478 observations deleted)
+r; t=1.17 19:51:57
+
+. 
+. 
+. 
+. drop counter_beforedrop
+r; t=0.05 19:51:57
+
+. drop counter_afterdrop
+r; t=0.00 19:51:57
+
+. 
+. ***** INTEGRITY CHECK *****
+. 
+. 
+. egen counter14to17 = group(tina) if treat14to17==1
+(1,195,970 missing values generated)
+r; t=2.78 19:51:59
+
+. sum counter14to17
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+counter14~17 |      5,427    226.3687    131.0265          1        453
+r; t=0.06 19:51:59
+
+. drop counter14to17
+r; t=0.00 19:51:59
+
+. //453 firms
+. 
+. 
+. 
+. ** Number of micro or small firms
+. 
+. egen countersmall = group(tina) if (treat14to17==1 & E001 < 50)
+(1,196,416 missing values generated)
+r; t=2.62 19:52:02
+
+. sum countersmall
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+countersmall |      4,981    215.1098      124.81          1        432
+r; t=0.04 19:52:02
+
+. drop countersmall
+r; t=0.00 19:52:02
+
+. // 432 firms
+. 
+. 
+. 
+. ** Firms with 5 or less employees
+. 
+. egen counter5 = group(tina) if treat14to17==1 & E001 < 6
+(1,199,791 missing values generated)
+r; t=2.70 19:52:05
+
+. sum counter5
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    counter5 |      1,606    121.0423    70.46615          1        242
+r; t=0.04 19:52:05
+
+. drop counter5
+r; t=0.00 19:52:05
+
+. //242 firms
+. 
+. 
+. save "/bplimext/projects/p068_SilvaSantosGouveia/work_area/curated.dta", replace
+file /bplimext/projects/p068_SilvaSantosGouveia/work_area/curated.dta saved
+r; t=0.90 19:52:06
+
+. 
+. 
+. ************** GENERATING NEEDED VARIABLES *****************
+. ************** GENERATING NEEDED VARIABLES *****************
+. ************** GENERATING NEEDED VARIABLES *****************
+. 
+. use "/bplimext/projects/p068_SilvaSantosGouveia/work_area/curated.dta", clear
+(CB Panel 2006-2018 - Ref. 2020_06 - YFRM/Rosto (V01) - Anonymized - PE068)
+r; t=0.34 19:52:06
+
+. 
+. xtset tina ano
+       panel variable:  tina (unbalanced)
+        time variable:  ano, 2006 to 2018, but with gaps
+                delta:  1 unit
+r; t=1.47 19:52:08
+
+. set seed 636299
+r; t=0.00 19:52:08
+
+. 
+. gen lag_aftai = L.B005
+(163,382 missing values generated)
+r; t=0.31 19:52:08
+
+. gen investment = (B005-lag_aftai)/lag_aftai
+(241,519 missing values generated)
+r; t=0.08 19:52:08
+
+. gen ln_aft = ln(B012)
+(120,914 missing values generated)
+r; t=0.05 19:52:08
+
+. gen prod = (MG010 + MG011) + D006 + D007 + DL043
+r; t=0.07 19:52:08
+
+. gen custint = D025 + D026
+r; t=0.05 19:52:08
+
+. gen eftw = E005 + 0.5* E007
+r; t=0.05 19:52:08
+
+. gen vab = prod - custint + D005 - DL047
+r; t=0.07 19:52:08
+
+. gen shortcredit = B089 - B093 - B161
+r; t=0.05 19:52:08
+
+. gen debtassetr = (B085 + shortcredit) / B001 
+(3,376 missing values generated)
+r; t=0.04 19:52:08
+
+. gen fixed_assetsr= B005 / B001
+(3,376 missing values generated)
+r; t=0.05 19:52:08
+
+. label variable fixed_assetsr "Fixed assets / Total Assets"
+r; t=0.00 19:52:08
+
+. gen currentr = B029 / B089  
+(19,117 missing values generated)
+r; t=0.05 19:52:08
+
+. label variable currentr "Current Assets / Current Liabilities"
+r; t=0.00 19:52:08
+
+. by tina, sort : egen float lastyear = max(ano)
+r; t=1.37 19:52:10
+
+. by tina, sort : egen float firstyear = min(ano)
+r; t=0.70 19:52:11
+
+. gen age = lastyear - ancon
+(788 missing values generated)
+r; t=0.07 19:52:11
+
+. replace age = lastyear - firstyear if age==.
+(788 real changes made)
+r; t=0.03 19:52:11
+
+. gen total_credit = B085 + shortcredit
+r; t=0.10 19:52:11
+
+. gen longcreditpc = B085 / (B085 + (shortcredit)) //missing values
+(214,125 missing values generated)
+r; t=0.09 19:52:11
+
+. replace longcreditpc = 0 if longcreditpc ==.
+(214,125 real changes made)
+r; t=0.04 19:52:11
+
+. gen shortcreditpc = (shortcredit) / (B085 + shortcredit)
+(214,125 missing values generated)
+r; t=0.06 19:52:11
+
+. replace shortcreditpc = 0 if shortcreditpc ==. //missing values
+(214,125 real changes made)
+r; t=0.03 19:52:11
+
+. gen hascredit = 1 if shortcredit + B085 > 0
+(273,231 missing values generated)
+r; t=0.08 19:52:11
+
+. replace hascredit = 0 if hascredit==.
+(273,231 real changes made)
+r; t=0.04 19:52:11
+
+. gen collateral = B012 / B001
+(3,376 missing values generated)
+r; t=0.05 19:52:11
+
+. gen ln_collateral = ln(B012/B001)
+(121,037 missing values generated)
+r; t=0.05 19:52:11
+
+. gen profitability = D084/D053
+(383,037 missing values generated)
+r; t=0.07 19:52:11
+
+. gen ln_fse = ln(D026)
+(50,168 missing values generated)
+r; t=0.05 19:52:11
+
+. gen labor_costs = D029
+r; t=0.04 19:52:11
+
+. gen ln_laborcost = ln(D029)
+(82,475 missing values generated)
+r; t=0.05 19:52:11
+
+. gen turnover = MG010 + MG011
+r; t=0.06 19:52:12
+
+. gen ln_turnover = ln(MG010 + MG011)
+(75,993 missing values generated)
+r; t=0.05 19:52:12
+
+. gen ln_fixed_assets = ln(B005)
+(112,070 missing values generated)
+r; t=0.05 19:52:12
+
+. gen ln_total_assets = ln(B001)
+(3,579 missing values generated)
+r; t=0.06 19:52:12
+
+. gen ln_wages = ln(DL012 / eftw)
+(154,663 missing values generated)
+r; t=0.08 19:52:12
+
+. gen ln_ebitda = ln(D084)
+(220,804 missing values generated)
+r; t=0.05 19:52:12
+
+. gen ln_finance = ln(B085)
+(650,144 missing values generated)
+r; t=0.10 19:52:12
+
+. 
+. **** GENERATING OUTCOME VARIABLES*****
+. 
+. 
+. *FINANCING
+. bysort tina: gen fin_2018 = B085 if ano == 2018
+(1,108,336 missing values generated)
+r; t=0.06 19:52:12
+
+. bysort tina: gen fin_2013 = B085 if ano == 2013
+(1,120,556 missing values generated)
+r; t=0.06 19:52:12
+
+. bysort tina: egen fin2018 = max(fin_2018)
+(302,887 missing values generated)
+r; t=0.75 19:52:13
+
+. bysort tina: egen fin2013 = max(fin_2013)
+(284,612 missing values generated)
+r; t=0.83 19:52:14
+
+. bysort tina: gen financing = ln(fin2018) - ln(fin2013)
+(845,318 missing values generated)
+r; t=0.08 19:52:14
+
+. 
+. 
+. 
+. *FIXED ASSETS
+. bysort tina: gen fassets_2018 = B005 if ano == 2018
+(1,108,336 missing values generated)
+r; t=0.05 19:52:14
+
+. bysort tina: gen fassets_2013 = B005 if ano == 2013
+(1,120,556 missing values generated)
+r; t=0.05 19:52:14
+
+. bysort tina: egen fassets2018 = max(fassets_2018)
+(302,887 missing values generated)
+r; t=0.87 19:52:15
+
+. bysort tina: egen fassets2013 = max(fassets_2013)
+(284,612 missing values generated)
+r; t=0.88 19:52:16
+
+. drop fassets_2018 fassets_2013
+r; t=0.11 19:52:16
+
+. bysort tina: gen f_assets1318 = ln(fassets2018) - ln(fassets2013)
+(459,552 missing values generated)
+r; t=0.07 19:52:16
+
+. 
+. 
+. 
+. * TOTAL ASSETS
+. bysort tina: gen totalassets_2018 = B001 if ano == 2018
+(1,108,336 missing values generated)
+r; t=0.06 19:52:16
+
+. bysort tina: gen totalassets_2013 = B001 if ano == 2013
+(1,120,556 missing values generated)
+r; t=0.05 19:52:16
+
+. bysort tina: egen totalassets2018 = max(totalassets_2018)
+(302,887 missing values generated)
+r; t=0.76 19:52:17
+
+. bysort tina: egen totalassets2013 = max(totalassets_2013)
+(284,612 missing values generated)
+r; t=0.72 19:52:17
+
+. drop totalassets_2018 totalassets_2013
+r; t=0.13 19:52:17
+
+. bysort tina: gen t_assets1318 = ln(totalassets2018) - ln(totalassets2013)
+(365,808 missing values generated)
+r; t=0.07 19:52:18
+
+. 
+. 
+. *** Gouveia, Ana Methodology for apparent labor productivity**
+. gen laborprod = vab/eftw
+(94,131 missing values generated)
+r; t=0.06 19:52:18
+
+. gen ln_laborprod = ln(laborprod)
+(141,693 missing values generated)
+r; t=0.08 19:52:18
+
+. gen laborprod_2018 = vab/eftw if ano == 2018
+(1,113,235 missing values generated)
+r; t=0.05 19:52:18
+
+. gen laborprod_2013 = vab/eftw if ano == 2013
+(1,129,714 missing values generated)
+r; t=0.05 19:52:18
+
+. bysort tina: egen laborprod2018 = max(laborprod_2018)
+(358,547 missing values generated)
+r; t=0.74 19:52:19
+
+. bysort tina: egen laborprod2013 = max(laborprod_2013)
+(374,402 missing values generated)
+r; t=0.72 19:52:19
+
+. drop laborprod_2018 laborprod_2013
+r; t=0.06 19:52:19
+
+. bysort tina: gen laborprod1318 = ln(laborprod2018) - ln(laborprod2013)
+(447,220 missing values generated)
+r; t=0.07 19:52:19
+
+. 
+. 
+. 
+. **TFP Levinsohn and Petri Methodology (used by SPGM)**
+. eststo levpet_TFP: prodest ln_turnover, method(lp) free(ln_laborcost) proxy(ln_fse) state(ln_fixed_assets) fsresidual(levpet_residuals) reps(5)
+..(CB Panel 2006-2018 - Ref. 2020_06 - YFRM/Rosto (V01) - Anonymized - PE068)
+.(CB Panel 2006-2018 - Ref. 2020_06 - YFRM/Rosto (V01) - Anonymized - PE068)
+.(CB Panel 2006-2018 - Ref. 2020_06 - YFRM/Rosto (V01) - Anonymized - PE068)
+.(CB Panel 2006-2018 - Ref. 2020_06 - YFRM/Rosto (V01) - Anonymized - PE068)
+
+
+
+lp productivity estimator                       Cobb-Douglas PF
+
+Dependent variable: revenue                     Number of obs      =   1034747
+Group variable (id): tina                       Number of groups   =    150691
+Time variable (t): ano
+                                                Obs per group: min =         1
+                                                               avg =       6.9
+                                                               max =        13
+
+---------------------------------------------------------------------------------
+    ln_turnover |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+   ln_laborcost |   .4502324   .0008801   511.56   0.000     .4485074    .4519574
+ln_fixed_assets |   .0433457   .0013227    32.77   0.000     .0407533    .0459381
+         ln_fse |   .5091373   .0010957   464.67   0.000     .5069897    .5112848
+---------------------------------------------------------------------------------
+Wald test on Constant returns to scale: Chi2 = 12.53
+                                          p = (0.00)
+r; t=148.60 19:54:48
+
+. 
+. predict levpetTFP, omega
+r; t=0.53 19:54:49
+
+. gen ln_levpetTFP = ln(levpetTFP)
+(166,650 missing values generated)
+r; t=0.04 19:54:49
+
+. 
+. bysort tina: gen levpetTFP_2018 = levpetTFP if ano == 2018
+(1,121,088 missing values generated)
+r; t=0.05 19:54:49
+
+. bysort tina: gen levpetTFP_2013 = levpetTFP if ano == 2013
+(1,134,189 missing values generated)
+r; t=0.05 19:54:49
+
+. bysort tina: egen levpetTFP2018 = max(levpetTFP_2018)
+(413,572 missing values generated)
+r; t=0.72 19:54:49
+
+. bysort tina: egen levpetTFP2013 = max(levpetTFP_2013)
+(417,932 missing values generated)
+r; t=0.74 19:54:50
+
+. drop levpetTFP_2018 levpetTFP_2013
+r; t=0.06 19:54:50
+
+. bysort tina: gen levpetTFP1318 = ln(levpetTFP2018) - ln(levpetTFP2013)
+(496,138 missing values generated)
+r; t=0.07 19:54:50
+
+. 
+. 
+. 
+. *EMPLOYMENT
+. gen employment_2018 = E005 + 0.5* E007 if ano== 2018
+(1,108,336 missing values generated)
+r; t=0.06 19:54:50
+
+. gen employment_2013 = E005 + 0.5* E007 if ano == 2013
+(1,120,556 missing values generated)
+r; t=0.05 19:54:50
+
+. bysort tina: egen employment2018 = max(employment_2018)
+(302,887 missing values generated)
+r; t=0.76 19:54:51
+
+. bysort tina: egen employment2013 = max(employment_2013)
+(284,612 missing values generated)
+r; t=0.73 19:54:52
+
+. drop employment_2018 employment_2013
+r; t=0.06 19:54:52
+
+. bysort tina: gen employment1318 = ln(employment2018) - ln(employment2013)
+(431,672 missing values generated)
+r; t=0.07 19:54:52
+
+. 
+. 
+. * AVERAGE WAGES
+. 
+. gen avg_wages_2018 = DL012 / eftw if ano == 2018
+(1,113,235 missing values generated)
+r; t=0.06 19:54:52
+
+. gen avg_wages_2013 = DL012 / eftw if ano == 2013
+(1,129,714 missing values generated)
+r; t=0.05 19:54:52
+
+. bysort tina: egen avg_wages2018 = max(avg_wages_2018)
+(358,547 missing values generated)
+r; t=0.73 19:54:53
+
+. bysort tina: egen avg_wages2013 = max(avg_wages_2013)
+(374,402 missing values generated)
+r; t=0.80 19:54:54
+
+. drop avg_wages_2018 avg_wages_2013
+r; t=0.06 19:54:54
+
+. bysort tina: gen avgwages1318 = ln(avg_wages2018) - ln(avg_wages2013)
+(490,284 missing values generated)
+r; t=0.06 19:54:54
+
+. 
+. 
+. * EBITDA
+. 
+. gen ebitda_2018 = D084 if ano == 2018
+(1,108,336 missing values generated)
+r; t=0.06 19:54:54
+
+. gen ebitda_2013 = D084 if ano == 2013
+(1,120,556 missing values generated)
+r; t=0.07 19:54:54
+
+. bysort tina: egen ebitda2018 = max(ebitda_2018)
+(302,887 missing values generated)
+r; t=0.96 19:54:55
+
+. bysort tina: egen ebitda2013 = max(ebitda_2013)
+(284,612 missing values generated)
+r; t=0.68 19:54:56
+
+. drop ebitda_2018 ebitda_2013
+r; t=0.06 19:54:56
+
+. bysort tina: gen ebitda1318 = ln(ebitda2018) - ln(ebitda2013)
+(461,855 missing values generated)
+r; t=0.06 19:54:56
+
+. 
+. 
+. 
+. drop prod custint vab
+r; t=0.12 19:54:56
+
+. 
+. **************** VARIABLE LABELS*************************
+. **************** VARIABLE LABELS*************************
+. **************** VARIABLE LABELS*************************
+. 
+. label var ln_finance "Debt"
+r; t=0.00 19:54:56
+
+. label var ln_total_assets "ln Total Assets"
+r; t=0.00 19:54:56
+
+. label var ln_fixed_assets "ln Fixed Assets"
+r; t=0.00 19:54:56
+
+. label var ln_laborprod "ln Labor Productivity"
+r; t=0.00 19:54:56
+
+. label var ln_levpetTFP " ln Total Factor Productivity"
+r; t=0.00 19:54:56
+
+. label var ln_wages "ln Wages"
+r; t=0.00 19:54:56
+
+. label var ln_ebitda "ln EBITDA"
+r; t=0.00 19:54:56
+
+. label var age "Firm Age"
+r; t=0.00 19:54:56
+
+. label var hascredit "In bank debt"
+r; t=0.00 19:54:56
+
+. label var longcreditpc "Share long-term bank debt"
+r; t=0.00 19:54:56
+
+. label var shortcredit "Share short-term bank debt"
+r; t=0.00 19:54:56
+
+. label var eftw "Equivalent Full-Time Workers"
+r; t=0.00 19:54:56
+
+. label var investment "Investment"
+r; t=0.00 19:54:56
+
+. label var turnover "Turnover"
+r; t=0.00 19:54:56
+
+. label var collateral "Collateral (Tangible Assets/Total Assets)"
+r; t=0.00 19:54:56
+
+. label var debtassetr "Leverage (Total Debt/Total Assets)"
+r; t=0.00 19:54:56
+
+. 
+. 
+. 
+. ***************** GENERATING LAGGED VARIABLES FOR 2007***********
+. ***************** GENERATING LAGGED VARIABLES FOR 2007***********
+. ***************** GENERATING LAGGED VARIABLES FOR 2007***********
+. sort tina ano
+r; t=0.16 19:54:56
+
+. 
+. gen age07 =.
+(1,201,397 missing values generated)
+r; t=0.04 19:54:56
+
+. replace age07 = L11.age if lastyear==2018 & ano==2018
+(53,171 real changes made)
+r; t=0.21 19:54:56
+
+. replace age07 = L10.age if lastyear==2017 & ano==2017
+(1,202 real changes made)
+r; t=0.21 19:54:56
+
+. replace age07 = L9.age if lastyear==2016 & ano== 2016
+(941 real changes made)
+r; t=0.20 19:54:57
+
+. replace age07 = L8.age if lastyear==2015 & ano== 2015
+(1,123 real changes made)
+r; t=0.18 19:54:57
+
+. replace age07 = L7.age if lastyear==2014 & ano== 2014
+(1,399 real changes made)
+r; t=0.17 19:54:57
+
+. replace age07 = L6.age if lastyear==2013 & ano== 2013
+(2,465 real changes made)
+r; t=0.18 19:54:57
+
+. replace age07 = L5.age if lastyear==2012 & ano== 2012
+(7,425 real changes made)
+r; t=0.18 19:54:57
+
+. replace age07 = L4.age if lastyear==2011 & ano== 2011
+(7,975 real changes made)
+r; t=0.19 19:54:58
+
+. replace age07 = L3.age if lastyear==2010 & ano== 2010
+(6,686 real changes made)
+r; t=0.24 19:54:58
+
+. replace age07 = L2.age if lastyear==2009 & ano== 2009
+(7,833 real changes made)
+r; t=0.24 19:54:58
+
+. replace age07 = L1.age if lastyear==2008 & ano== 2008
+(7,355 real changes made)
+r; t=0.18 19:54:58
+
+. replace age07 = age if lastyear==2007 & ano== 2007
+(5,769 real changes made)
+r; t=0.04 19:54:58
+
+. 
+. by tina: egen valor_r07 = max(valor_r)
+(1,195,970 missing values generated)
+r; t=0.69 19:54:59
+
+. replace valor_r07 = . if (valor_r07!=. & ano!= 2018)
+(4,986 real changes made, 4,986 to missing)
+r; t=0.04 19:54:59
+
+. 
+. 
+. gen longcreditpc07 =.
+(1,201,397 missing values generated)
+r; t=0.04 19:54:59
+
+. replace longcreditpc07 = L11.longcreditpc if lastyear==2018 & ano==2018
+(53,171 real changes made)
+r; t=0.21 19:54:59
+
+. replace longcreditpc07 = L10.longcreditpc if lastyear==2017 & ano==2017
+(1,202 real changes made)
+r; t=0.17 19:54:59
+
+. replace longcreditpc07 = L9.longcreditpc if lastyear==2016 & ano== 2016
+(941 real changes made)
+r; t=0.18 19:55:00
+
+. replace longcreditpc07 = L8.longcreditpc if lastyear==2015 & ano== 2015
+(1,123 real changes made)
+r; t=0.17 19:55:00
+
+. replace longcreditpc07 = L7.longcreditpc if lastyear==2014 & ano== 2014
+(1,399 real changes made)
+r; t=0.18 19:55:00
+
+. replace longcreditpc07 = L6.longcreditpc if lastyear==2013 & ano== 2013
+(2,465 real changes made)
+r; t=0.17 19:55:00
+
+. replace longcreditpc07 = L5.longcreditpc if lastyear==2012 & ano== 2012
+(7,425 real changes made)
+r; t=0.18 19:55:00
+
+. replace longcreditpc07 = L4.longcreditpc if lastyear==2011 & ano== 2011
+(7,975 real changes made)
+r; t=0.19 19:55:01
+
+. replace longcreditpc07 = L3.longcreditpc if lastyear==2010 & ano== 2010
+(6,686 real changes made)
+r; t=0.18 19:55:01
+
+. replace longcreditpc07 = L2.longcreditpc if lastyear==2009 & ano== 2009
+(7,833 real changes made)
+r; t=0.21 19:55:01
+
+. replace longcreditpc07 = L1.longcreditpc if lastyear==2008 & ano== 2008
+(7,355 real changes made)
+r; t=0.19 19:55:01
+
+. replace longcreditpc07 = longcreditpc if lastyear==2007 & ano== 2007
+(5,769 real changes made)
+r; t=0.04 19:55:01
+
+. 
+. 
+. gen debtassetr07 =.
+(1,201,397 missing values generated)
+r; t=0.04 19:55:01
+
+. replace debtassetr07 = L11.debtassetr if lastyear==2018 & ano==2018
+(53,165 real changes made)
+r; t=0.22 19:55:01
+
+. replace debtassetr07 = L10.debtassetr if lastyear==2017 & ano==2017
+(1,202 real changes made)
+r; t=0.19 19:55:02
+
+. replace debtassetr07 = L9.debtassetr if lastyear==2016 & ano== 2016
+(941 real changes made)
+r; t=0.18 19:55:02
+
+. replace debtassetr07 = L8.debtassetr if lastyear==2015 & ano== 2015
+(1,123 real changes made)
+r; t=0.18 19:55:02
+
+. replace debtassetr07 = L7.debtassetr if lastyear==2014 & ano== 2014
+(1,399 real changes made)
+r; t=0.17 19:55:02
+
+. replace debtassetr07 = L6.debtassetr if lastyear==2013 & ano== 2013
+(2,465 real changes made)
+r; t=0.17 19:55:02
+
+. replace debtassetr07 = L5.debtassetr if lastyear==2012 & ano== 2012
+(7,423 real changes made)
+r; t=0.19 19:55:03
+
+. replace debtassetr07 = L4.debtassetr if lastyear==2011 & ano== 2011
+(7,972 real changes made)
+r; t=0.20 19:55:03
+
+. replace debtassetr07 = L3.debtassetr if lastyear==2010 & ano== 2010
+(6,685 real changes made)
+r; t=0.19 19:55:03
+
+. replace debtassetr07 = L2.debtassetr if lastyear==2009 & ano== 2009
+(7,829 real changes made)
+r; t=0.17 19:55:03
+
+. replace debtassetr07 = L1.debtassetr if lastyear==2008 & ano== 2008
+(7,354 real changes made)
+r; t=0.18 19:55:03
+
+. replace debtassetr07 = debtassetr if lastyear==2007 & ano== 2007
+(5,574 real changes made)
+r; t=0.04 19:55:03
+
+. 
+. 
+. gen collateral07 =.
+(1,201,397 missing values generated)
+r; t=0.04 19:55:03
+
+. replace collateral07 = L11.collateral if lastyear==2018 & ano==2018
+(53,165 real changes made)
+r; t=0.23 19:55:04
+
+. replace collateral07 = L10.collateral if lastyear==2017 & ano==2017
+(1,202 real changes made)
+r; t=0.18 19:55:04
+
+. replace collateral07 = L9.collateral if lastyear==2016 & ano== 2016
+(941 real changes made)
+r; t=0.18 19:55:04
+
+. replace collateral07 = L8.collateral if lastyear==2015 & ano== 2015
+(1,123 real changes made)
+r; t=0.18 19:55:04
+
+. replace collateral07 = L7.collateral if lastyear==2014 & ano== 2014
+(1,399 real changes made)
+r; t=0.18 19:55:04
+
+. replace collateral07 = L6.collateral if lastyear==2013 & ano== 2013
+(2,465 real changes made)
+r; t=0.19 19:55:05
+
+. replace collateral07 = L5.collateral if lastyear==2012 & ano== 2012
+(7,423 real changes made)
+r; t=0.19 19:55:05
+
+. replace collateral07 = L4.collateral if lastyear==2011 & ano== 2011
+(7,972 real changes made)
+r; t=0.19 19:55:05
+
+. replace collateral07 = L3.collateral if lastyear==2010 & ano== 2010
+(6,685 real changes made)
+r; t=0.17 19:55:05
+
+. replace collateral07 = L2.collateral if lastyear==2009 & ano== 2009
+(7,829 real changes made)
+r; t=0.18 19:55:05
+
+. replace collateral07 = L1.collateral if lastyear==2008 & ano== 2008
+(7,354 real changes made)
+r; t=0.18 19:55:05
+
+. replace collateral07 = collateral if lastyear==2007 & ano== 2007
+(5,574 real changes made)
+r; t=0.05 19:55:06
+
+. 
+. 
+. save "/bplimext/projects/p068_SilvaSantosGouveia/work_area/finaldb.dta", replace
+file /bplimext/projects/p068_SilvaSantosGouveia/work_area/finaldb.dta saved
+r; t=1.29 19:55:07
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /bplimext/projects/p068_SilvaSantosGouveia/work_area/Log_1_Curation.log
+  log type:  text
+ closed on:  22 Dec 2020, 19:55:07
+------------------------------------------------------------------------------------------------------------------------------------------------------
